@@ -1,0 +1,78 @@
+import random
+from PIL import Image
+import numpy as np
+
+
+def add_noise(image, noise_level=0.05):
+    """
+    向图像添加噪点。
+
+    参数:
+    image (PIL.Image): 输入图像。
+    noise_level (float): 噪点水平，默认值为0.05。
+
+    返回:
+    PIL.Image: 加了噪点的图像。
+    """
+    np_image = np.array(image)
+    noise = np.random.normal(0, 1, np_image.shape)
+
+    # 计算噪点量
+    amount = noise_level * 255
+
+    noisy_image = np_image + noise * amount
+    noisy_image = np.clip(noisy_image, 0, 255).astype(np.uint8)
+
+    return Image.fromarray(noisy_image)
+
+
+def random_erase(image, erase_percentage=0.2):
+    """
+    随机涂抹图像的一部分。
+
+    参数:
+    image (PIL.Image): 输入图像。
+    erase_percentage (float): 被涂抹的比例，默认值为0.2。
+
+    返回:
+    PIL.Image: 被涂抹的图像。
+    """
+    np_image = np.array(image)
+    h, w, _ = np_image.shape
+
+    # 计算涂抹的大小
+    erase_area = int(h * w * erase_percentage)
+    erase_h = random.randint(1, h // 2)
+    erase_w = erase_area // erase_h
+
+    if erase_w > w:
+        erase_w = w
+
+    x = random.randint(0, w - erase_w)
+    y = random.randint(0, h - erase_h)
+
+    np_image[y:y + erase_h, x:x + erase_w] = 0  # 用黑色（0）涂抹
+
+    return Image.fromarray(np_image)
+
+
+def process_image(image_path, output_path, noise_level=0.05, erase_percentage=0.2):
+    """
+    加载图像，添加噪点并随机涂抹，然后保存处理后的图像。
+
+    参数:
+    image_path (str): 输入图像路径。
+    output_path (str): 输出图像路径。
+    noise_level (float): 噪点水平，默认值为0.05。
+    erase_percentage (float): 被涂抹的比例，默认值为0.2。
+    """
+    image = Image.open(image_path)
+    noisy_image = add_noise(image, noise_level)
+    erased_image = random_erase(noisy_image, erase_percentage)
+    erased_image.save(output_path)
+
+
+# 加载图像aaa.png，添加噪点并随机涂抹，保存结果为output.png
+input_image_path = 'aaa.png'
+output_image_path = 'output.png'
+process_image(input_image_path, output_image_path)
