@@ -1,0 +1,32 @@
+from PIL import Image
+import numpy as np
+import random
+
+def shift_blue(image_path, output_path):
+    # 打开图片
+    image = Image.open(image_path).convert("RGBA")
+    # 获取图片像素数据
+    pixel_data = np.array(image)
+    # 增强蓝色通道（稍微减弱红色和绿色通道），使失真偏蓝
+    red, green, blue, alpha = pixel_data.T
+    red = np.clip(red - 30, 0, 255)
+    green = np.clip(green - 30, 0, 255)
+    blue = np.clip(blue + 50, 0, 255)
+    # 更新像素数据
+    pixel_data = np.dstack([red, green, blue, alpha])
+    # 获取图片的尺寸
+    height, width = pixel_data.shape[:2]
+    # 在左上角随机擦除部分像素
+    erase_area = (int(width * 0.5), int(height * 0.5))  # 擦除区域大小，设定为图片宽高的 50%
+    for y in range(erase_area[1]):
+        for x in range(erase_area[0]):
+            if random.random() < 0.5:  # 50% 几率擦除
+                pixel_data[y, x] = [255, 255, 255, 0]  # 设置成透明或白色
+    # 将结果保存为新图片
+    result_img = Image.fromarray(pixel_data.astype('uint8'), 'RGBA')
+    result_img.save(output_path)
+
+# 使用函数
+input_image_path = 'taiwan.png'
+output_image_path = 'taiwan_blue_distorted.png'
+shift_blue(input_image_path, output_image_path)
